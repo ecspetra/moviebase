@@ -1,6 +1,5 @@
-import React, {useState} from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-//import firebase from 'firebase/compat/app';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const Register = () => {
@@ -22,55 +21,69 @@ const Register = () => {
         setUserPassword(event.target.value);
     }
 
-    // const isFormEmpty = (userName, userEmail, userPassword) => {
-    //     console.log(userName, userEmail, userPassword);
-    //     //return !userName.length || !userEmail.length || !userPassword.length;
-    // }
+    useEffect(() => {
+        console.log(formError);
+    }, [formError]);
 
-    const isFormValid = (userName, userEmail, userPassword) => {
-        if (!userName.length || !userEmail.length || !userPassword.length) {
-            setFormError('Form is empty');
-        } else if (userPassword.length > 10 && userPassword.length < 20) {
-            setFormError('Password must be more than 10 and less than 20 characters');
+    const isFormEmpty = (userName, userEmail, userPassword) => {
+        return !userName.length || !userEmail.length || !userPassword.length;
+    }
+
+    const isPasswordValid = (userPassword) => {
+        if (userPassword.length < 10 || userPassword.length > 20) {
+            return false;
         } else {
-            setFormError('');
+            return true;
+        }
+    }
+
+    const isFormValid = () => {
+        if (isFormEmpty(userName, userEmail, userPassword)) {
+            setFormError('Form is empty');
+            return false;
+        } else if (!isPasswordValid(userPassword)) {
+            setFormError('Password is invalid');
+            return false;
+        } else {
+            return true;
         }
     }
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        console.log(userName, userEmail, userPassword);
-        if (isFormValid(userName, userEmail, userPassword)) {
-            const auth = getAuth();
-            createUserWithEmailAndPassword(auth, userEmail, userPassword)
-                .then((userCredential) => {
-                    // Signed in
-                    const user = userCredential.user;
-                    console.log(user);
-                })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    console.log(errorMessage);
-                });
-        } else {
-            console.log(formError);
+        if (isFormValid()) {
+            if (!userName.length || !userEmail.length || !userPassword.length) {
+                setFormError('Form is empty');
+            } else {
+                const auth = getAuth();
+                createUserWithEmailAndPassword(auth, userEmail, userPassword)
+                    .then((userCredential) => {
+                        const user = userCredential.user;
+                        console.log(user);
+                    })
+                    .catch((error) => {
+                        const errorCode = error.code;
+                        const errorMessage = error.message;
+                        console.log(errorMessage);
+                    });
+                setFormError('');
+            }
         }
     }
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div>
-                <label htmlFor="username">Enter your name</label>
-                <input id="username" type="text" value={userName} onChange={handleUserNameChange} />
+        <form className="registration-form" onSubmit={handleSubmit}>
+            <div className="registration-form__field">
+                <label className="registration-form__label" htmlFor="username">Enter your name</label>
+                <input className="registration-form__input" id="username" type="text" value={userName} onChange={handleUserNameChange} />
             </div>
-            <div>
-                <label htmlFor="email">Enter your email</label>
-                <input id="email" type="text" value={userEmail} onChange={handleUserEmailChange} />
+            <div className="registration-form__field">
+                <label className="registration-form__label" htmlFor="email">Enter your email</label>
+                <input className="registration-form__input" id="email" type="text" value={userEmail} onChange={handleUserEmailChange} />
             </div>
-            <div>
-                <label htmlFor="password">Enter your password</label>
-                <input id="password" type="text" value={userPassword} onChange={handleUserPasswordChange} />
+            <div className="registration-form__field">
+                <label className="registration-form__label" htmlFor="password">Enter your password</label>
+                <input className="registration-form__input" id="password" type="text" value={userPassword} onChange={handleUserPasswordChange} />
             </div>
             <button type="submit">Submit</button>
             <div>
