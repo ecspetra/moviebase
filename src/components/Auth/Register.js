@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import md5 from 'md5';
 
 const Register = () => {
 
@@ -8,6 +9,7 @@ const Register = () => {
     const [userEmail, setUserEmail] = useState('');
     const [userPassword, setUserPassword] = useState('');
     const [formError, setFormError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleUserNameChange = (event) => {
         setUserName(event.target.value);
@@ -52,22 +54,25 @@ const Register = () => {
     const handleSubmit = (event) => {
         event.preventDefault();
         if (isFormValid()) {
-            if (!userName.length || !userEmail.length || !userPassword.length) {
-                setFormError('Form is empty');
-            } else {
-                const auth = getAuth();
-                createUserWithEmailAndPassword(auth, userEmail, userPassword)
-                    .then((userCredential) => {
-                        const user = userCredential.user;
-                        console.log(user);
+            setIsLoading(true);
+            const auth = getAuth();
+            createUserWithEmailAndPassword(auth, userEmail, userPassword)
+                .then((currentUser) => {
+                    console.log(auth.currentUser);
+                    updateProfile(auth.currentUser, {
+                        displayName: userName,
+                        photoURL: `http://gravatar.com/avatar/${md5(currentUser.user.email)}?d=identicon`,
                     })
-                    .catch((error) => {
-                        const errorCode = error.code;
-                        const errorMessage = error.message;
-                        console.log(errorMessage);
-                    });
-                setFormError('');
-            }
+                        .then(() => {
+                            setIsLoading(false);
+                        })
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.log(errorCode, errorMessage);
+                });
+            setFormError('');
         }
     }
 
@@ -90,6 +95,9 @@ const Register = () => {
                 Already a user?
                 <Link to="/login">Login</Link>
             </div>
+            {
+                isLoading && <div>Loading...</div>
+            }
             <p>{formError}</p>
         </form>
     )
