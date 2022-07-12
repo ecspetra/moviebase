@@ -2,6 +2,8 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 // import { getFirestore, collection, getDocs } from 'firebase/firestore/lite';
 
+import { getDatabase } from "firebase/database";
+
 const firebaseConfig = {
     apiKey: "AIzaSyCdEwk5zrUqvL9z4d7-umzVyhfh6MYMSRA",
     authDomain: "movie-base-3f941.firebaseapp.com",
@@ -13,7 +15,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-// const database = getFirestore(app);
+export const database = getDatabase();
 
 // async function getMovies(database) {
 //     const moviesCollection = collection(database, 'movies');

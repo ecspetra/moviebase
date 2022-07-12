@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } from "firebase/auth";
 import md5 from 'md5';
+import history from "../../history";
+import { getDatabase, ref, set } from "firebase/database";
 
 const Register = () => {
 
@@ -10,6 +12,9 @@ const Register = () => {
     const [userPassword, setUserPassword] = useState('');
     const [formError, setFormError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    const database = getDatabase();
+    const auth = getAuth();
 
     const handleUserNameChange = (event) => {
         setUserName(event.target.value);
@@ -26,6 +31,14 @@ const Register = () => {
     useEffect(() => {
         console.log(formError);
     }, [formError]);
+
+    useEffect(() => {
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                history.push('/');
+            }
+        })
+    }, []);
 
     const isFormEmpty = (userName, userEmail, userPassword) => {
         return !userName.length || !userEmail.length || !userPassword.length;
@@ -55,7 +68,6 @@ const Register = () => {
         event.preventDefault();
         if (isFormValid()) {
             setIsLoading(true);
-            const auth = getAuth();
             createUserWithEmailAndPassword(auth, userEmail, userPassword)
                 .then((currentUser) => {
                     console.log(auth.currentUser);
@@ -64,7 +76,13 @@ const Register = () => {
                         photoURL: `http://gravatar.com/avatar/${md5(currentUser.user.email)}?d=identicon`,
                     })
                         .then(() => {
-                            setIsLoading(false);
+                            set(ref(database, 'users/' + auth.currentUser.uid), {
+                                name: auth.currentUser.displayName,
+                                avatar: auth.currentUser.photoURL
+                            }).then(() => {
+                                console.log("User saved");
+                                setIsLoading(false);
+                            })
                         })
                 })
                 .catch((error) => {
@@ -78,6 +96,10 @@ const Register = () => {
 
     return (
         <form className="registration-form" onSubmit={handleSubmit}>
+            <div className="registration-form__text-wrap">
+                <h1 className="registration-form__title">Register to MovieNET</h1>
+                <p className="registration-form__text">Please fill in the fields to enter</p>
+            </div>
             <div className="registration-form__field">
                 <label className="registration-form__label" htmlFor="username">Enter your name</label>
                 <input className="registration-form__input" id="username" type="text" value={userName} onChange={handleUserNameChange} />
