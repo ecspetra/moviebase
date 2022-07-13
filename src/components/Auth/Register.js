@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getAuth, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } from "firebase/auth";
 import md5 from 'md5';
-import history from "../../history";
 import { getDatabase, ref, set } from "firebase/database";
 
 const Register = () => {
@@ -16,6 +15,17 @@ const Register = () => {
     const database = getDatabase();
     const auth = getAuth();
 
+    useEffect(() => {
+        console.log(formError);
+    }, [formError]);
+
+    const history = useNavigate();
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            history('/');
+        }
+    });
+
     const handleUserNameChange = (event) => {
         setUserName(event.target.value);
     }
@@ -27,18 +37,6 @@ const Register = () => {
     const handleUserPasswordChange = (event) => {
         setUserPassword(event.target.value);
     }
-
-    useEffect(() => {
-        console.log(formError);
-    }, [formError]);
-
-    useEffect(() => {
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                history.push('/');
-            }
-        })
-    }, []);
 
     const isFormEmpty = (userName, userEmail, userPassword) => {
         return !userName.length || !userEmail.length || !userPassword.length;

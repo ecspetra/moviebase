@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import {Link} from "react-router-dom";
-import {signInWithEmailAndPassword, getAuth, updateProfile} from "firebase/auth";
+import {Link, useNavigate} from "react-router-dom";
+import {signInWithEmailAndPassword, getAuth, updateProfile, onAuthStateChanged} from "firebase/auth";
 import {getDatabase, ref, set} from "firebase/database";
 
 const Login = () => {
@@ -13,6 +13,17 @@ const Login = () => {
     const database = getDatabase();
     const auth = getAuth();
 
+    useEffect(() => {
+        console.log(formError);
+    }, [formError]);
+
+    const history = useNavigate();
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            history('/');
+        }
+    });
+
     const handleUserEmailChange = (event) => {
         setUserEmail(event.target.value);
     }
@@ -20,10 +31,6 @@ const Login = () => {
     const handleUserPasswordChange = (event) => {
         setUserPassword(event.target.value);
     }
-
-    useEffect(() => {
-        console.log(formError);
-    }, [formError]);
 
     const isFormValid = () => {
         return userEmail && userPassword;
@@ -36,6 +43,7 @@ const Login = () => {
             signInWithEmailAndPassword(auth, userEmail, userPassword)
                 .then((currentUser) => {
                     console.log(auth.currentUser);
+                    setIsLoading(false);
             })
                 .catch((error) => {
                 const errorCode = error.code;
